@@ -10,6 +10,14 @@ def app():
     if 'button2' not in st.session_state:
         st.session_state.button2 = False
 
+    if 'button3' not in st.session_state:
+        st.session_state.button3 = False
+
+    @st.cache
+    def convert_df_to_csv(df):
+        # IMPORTANT: Cache the conversion to prevent computation on every rerun
+        return df.to_csv().encode('utf-8')
+
     st.markdown("## First lets generate the Database")
     left_column, right_column = st.columns(2)
     with left_column:
@@ -23,14 +31,16 @@ def app():
                 st.write('Loading your links')
                 with open(os.path.join(uploaded_file.name), "wb") as f:
                     f.write(uploaded_file.getbuffer())
+                os.rename(uploaded_file.name, 'stores_list.json')
                 scrapy = subprocess.run('scrapy crawl data_spider -O Restaurants.csv -t csv', shell=True)
                 st.session_state.button1 = True
 
     if st.session_state.button1:
         st.write('Database Ready')
         st.markdown("## Now let's filter this Database")
-        df = pd.read_csv("Restaurants.csv")
+        df = pd.read_csv("Restaurants.csv", header=0)
         df.drop_duplicates(subset=['uuid'], inplace=True)
+        df = df[df["tipo"].str.contains("tipo") == False]
         type = st.multiselect(
             "Select the Categories (Can be more than one):",
             options=df["tipo"].unique(),
@@ -44,5 +54,27 @@ def app():
         st.write('Filtered Database Saved')
         st.markdown("## Now we can get all the items sold im these stores")
         if st.button('Save items sold in these stores'):
-            scrapy = subprocess.run('scrapy crawl menudata_spider -O Itens.csv -t csv', shell=True)
+            scrapy = subprocess.run('scrapy crawl menudata_spider -O Items.csv -t csv', shell=True)
             st.write('All store itens were saved')
+            st.session_state.button3 = True
+    if st.session_state.button3:
+        st.markdown("## Now you can download your results")
+        left_column, right_column = st.columns(2)
+        with left_column:
+            restaurants = pd.read_csv('Restaurants.csv')  # This is your 'my_large_df'
+
+            st.download_button(
+                label="Download Restaurant database",
+                data=convert_df_to_csv(restaurants),
+                file_name='Restaurants.csv',
+                mime='text/csv',
+            )
+        with right_column:
+            items = pd.read_csv('Items.csv')  # This is your 'my_large_df'
+
+            st.download_button(
+                label="Download Items database",
+                data=convert_df_to_csv(items),
+                file_name='Items.csv',
+                mime='text/csv',
+            )

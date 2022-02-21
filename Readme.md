@@ -12,5 +12,5 @@ scrapy crawl data_spider -O Restaurants.csv -t csv
 
 ## Restaurant Itens Spider
 ```shell
-scrapy crawl menudata_spider -O Itens.csv -t csv  
+scrapy crawl menudata_spider -O Items.csv -t csv  
 ```
