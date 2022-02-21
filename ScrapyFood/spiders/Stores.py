@@ -3,7 +3,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
-import os
 import time
 
 class StoresSpider(scrapy.Spider):
@@ -24,7 +23,7 @@ class StoresSpider(scrapy.Spider):
         options.add_argument("--window-size=1920,1080")
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
-        wd = webdriver.Chrome(executable_path=os.path.dirname(os.path.abspath(__file__))+'/chromedriver.exe',options=options)
+        wd = webdriver.Chrome(options=options)
         wd.get("https://www.ifood.com.br/restaurantes")  # Site para começar o processo
         print("Abrindo Ifood")
         time.sleep(2)
