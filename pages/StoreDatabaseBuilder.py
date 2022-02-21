@@ -14,7 +14,7 @@ def app():
     left_column, right_column = st.columns(2)
     with left_column:
         if st.button('Generate Database using first step links'):
-            scrapy = subprocess.run('scrapy crawl data_spider -O Restaurants.csv -t csv')
+            scrapy = subprocess.run('scrapy crawl data_spider -O Restaurants.csv -t csv', shell=True)
             st.session_state.button1 = True
     with right_column:
         uploaded_file = st.file_uploader('Upload your links')
@@ -23,7 +23,7 @@ def app():
                 st.write('Loading your links')
                 with open(os.path.join(uploaded_file.name), "wb") as f:
                     f.write(uploaded_file.getbuffer())
-                scrapy = subprocess.run('scrapy crawl data_spider -O Restaurants.csv -t csv')
+                scrapy = subprocess.run('scrapy crawl data_spider -O Restaurants.csv -t csv', shell=True)
                 st.session_state.button1 = True
 
     if st.session_state.button1:
@@ -44,5 +44,5 @@ def app():
         st.write('Filtered Database Saved')
         st.markdown("## Now we can get all the items sold im these stores")
         if st.button('Save items sold in these stores'):
-            scrapy = subprocess.run('scrapy crawl menudata_spider -O Itens.csv -t csv')
+            scrapy = subprocess.run('scrapy crawl menudata_spider -O Itens.csv -t csv', shell=True)
             st.write('All store itens were saved')

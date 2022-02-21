@@ -22,8 +22,8 @@ def app():
                     os.remove('stores_list.json')
                 except:
                     pass
-                scrapy = subprocess.run('scrapy crawl stores_spider -O stores_list.json -a address="' + address_text +  '" -a search="' + search_text+ '" -t jsonlines')
+                scrapy = subprocess.run('scrapy crawl stores_spider -O stores_list.json -a address="' + address_text +  '" -a search="' + search_text+ '" -t jsonlines', shell=True)
             else:
-                scrapy = subprocess.run('scrapy crawl stores_spider -o stores_list.json -a address="' + address_text + '" -a search="' + search_text + '" -t jsonlines')
+                scrapy = subprocess.run('scrapy crawl stores_spider -o stores_list.json -a address="' + address_text + '" -a search="' + search_text + '" -t jsonlines', shell=True)
             st.write("You can run your next search")
             st.session_state.first_run = False
