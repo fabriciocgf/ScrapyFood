@@ -147,3 +147,4 @@ matplotlib
 seaborn
 geopandas
 folium
+streamlit_folium
