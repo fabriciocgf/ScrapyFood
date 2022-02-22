@@ -2,6 +2,9 @@ import scrapy
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
+from webdriver_manager.firefox import GeckoDriverManager
 from bs4 import BeautifulSoup
 import time
 
@@ -16,14 +19,15 @@ class StoresSpider(scrapy.Spider):
     def parse(self, response):
         address = self.address
         search = self.search
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        options.add_argument("--window-size=1920,1080")
-        options.add_experimental_option('excludeSwitches', ['enable-logging'])
-
-        wd = webdriver.Chrome(options=options)
+        firefoxOptions = Options()
+        firefoxOptions.add_argument("--headless")
+        firefoxOptions.add_argument("--width=1920");
+        firefoxOptions.add_argument("--height=1080");
+        service = Service(GeckoDriverManager().install())
+        wd = webdriver.Firefox(
+            options=firefoxOptions,
+            service=service,
+        )
         wd.get("https://www.ifood.com.br/restaurantes")  # Site para começar o processo
         print("Abrindo Ifood")
         time.sleep(2)
