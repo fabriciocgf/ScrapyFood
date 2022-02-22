@@ -143,3 +143,5 @@ widgetsnbextension~=3.5.2
 wsproto~=1.0.0
 zipp~=3.7.0
 zope.interface~=5.4.0
+matplotlib
+seaborn
