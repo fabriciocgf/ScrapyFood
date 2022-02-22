@@ -146,3 +146,4 @@ zope.interface~=5.4.0
 matplotlib
 seaborn
 geopandas
+folium
