@@ -1,4 +1,4 @@
-import contextily as ctx
+#import contextily as ctx
 import matplotlib.pyplot as plt
 import seaborn as sns
 import geopandas as gpd
@@ -6,9 +6,10 @@ import pandas as pd
 from shapely.geometry import Point, Polygon, MultiPolygon
 import folium
 import numpy as np
-import fiona
+#import fiona
 import streamlit as st
 import os
+from streamlit_folium import folium_static
 
 def app():
     if 'button1' not in st.session_state:
@@ -33,6 +34,7 @@ def app():
 
     if st.session_state.button1:
         st.write('Database Loaded')
+        st.markdown("## Let's see the distribution of our data")
         df['Lat'].replace('', np.nan, inplace=True)
         df.dropna(subset=['Lat'], inplace=True)
         df = df.reset_index(drop=True)
@@ -55,4 +57,57 @@ def app():
         buffer_union_gdf.explore(m=m, tiles="cartodbpositron", name="Area", tooltip=False)
 
         folium.LayerControl().add_to(m)  # use folium to add layer control
+
+        folium_static(m)
+
+        st.markdown("## How is it concentrated")
+        # Create thresholds
+        levels = np.linspace(0, 1, 13)
+        levels = levels[1:]
+        # Create plot
+        f, ax = plt.subplots(ncols=1, figsize=(20, 8))
+        # Kernel Density Estimation
+        kde = sns.kdeplot(
+            ax=ax,
+            x=gdf['geometry'].x,
+            y=gdf['geometry'].y,
+            levels=levels,
+            shade=True,
+            cmap='Reds',
+            alpha=0.5
+        )
+
+        level_polygons = []
+        i = 0
+        for col in kde.collections:
+            paths = []
+            # Loop through all polygons that have the same intensity level
+            for contour in col.get_paths():
+                # Create a polygon for the countour
+                # First polygon is the main countour, the rest are holes
+                for ncp, cp in enumerate(contour.to_polygons()):
+                    x = cp[:, 0]
+                    y = cp[:, 1]
+                    new_shape = Polygon([(i[0], i[1]) for i in zip(x, y)])
+                    if ncp == 0:
+                        poly = new_shape
+                    else:
+                        # Remove holes, if any
+                        poly = poly.difference(new_shape)
+
+                # Append polygon to list
+                paths.append(poly)
+            # Create a MultiPolygon for the contour
+            multi = MultiPolygon(paths)
+            # Append MultiPolygon and level as tuple to list
+            level_polygons.append((levels[i], multi))
+            i += 1
+
+            # Create DataFrame
+            df = pd.DataFrame(level_polygons, columns=['level', 'geometry'])
+            df['level'] = df.apply(lambda row: np.round((1 - row.level) * 100, 2), axis=1)
+            # Convert to a GeoDataFrame
+            geo = gpd.GeoDataFrame(df, geometry='geometry', crs=gdf.crs)
+            m = geo.explore(tiles="cartodbpositron", width=1000, height=800)
+            folium_static(m)
 
