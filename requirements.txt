@@ -149,3 +149,4 @@ geopandas
 folium
 streamlit_folium
 webdriver-manager
+crochet
