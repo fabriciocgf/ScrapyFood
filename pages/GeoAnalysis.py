@@ -108,6 +108,15 @@ def app():
             df['level'] = df.apply(lambda row: np.round((1 - row.level) * 100, 2), axis=1)
             # Convert to a GeoDataFrame
             geo = gpd.GeoDataFrame(df, geometry='geometry', crs=gdf.crs)
-            m = geo.explore(tiles="cartodbpositron", width=1000, height=800)
+            #m = geo.explore(tiles="cartodbpositron", width=1000, height=800)
+            m = folium.Map(location=[geo['geometry'][0].centroid.y, geo['geometry'][0].centroid.x], zoom_start=1000, tiles='CartoDB positron', width=1000, height=800)
+            for _, r in geo.iterrows():
+                # Without simplifying the representation of each borough,
+                # the map might not be displayed
+                sim_geo = gpd.GeoSeries(r['geometry']).simplify(tolerance=0.001)
+                geo_j = sim_geo.to_json()
+                geo_j = folium.GeoJson(data=geo_j, style_function=lambda x: {'fillColor': 'blue'})
+                folium.Tooltip(r['level']).add_to(geo_j)
+                geo_j.add_to(m)
+                
             folium_static(m)
-
