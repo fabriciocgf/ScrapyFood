@@ -12,15 +12,15 @@ import os
 from streamlit_folium import folium_static
 
 def app():
-    if 'button1' not in st.session_state:
-        st.session_state.button1 = False
+    if 'gis_data' not in st.session_state:
+        st.session_state.gis_data = False
 
     st.markdown("## GIS Analysis")
     left_column, right_column = st.columns(2)
     with left_column:
         if st.button('Proceed using database from second step'):
             df = pd.read_csv("Restaurants.csv")
-            st.session_state.button1 = True
+            st.session_state.gis_data = True
     with right_column:
         uploaded_file = st.file_uploader('Upload your links')
         if uploaded_file is not None:
@@ -30,9 +30,9 @@ def app():
                     f.write(uploaded_file.getbuffer())
                 os.rename(uploaded_file.name, 'Restaurants.csv')
                 df = pd.read_csv("Restaurants.csv")
-                st.session_state.button1 = True
+                st.session_state.gis_data = True
 
-    if st.session_state.button1:
+    if st.session_state.gis_data:
         st.write('Database Loaded')
         st.markdown("## Let's see the distribution of our data")
         df['Lat'].replace('', np.nan, inplace=True)
@@ -50,6 +50,8 @@ def app():
             name="Restaurants"
             , width=1000, height=800
         )
+        
+        folium_static(m)
 
         new_crs = gdf.to_crs(crs='EPSG:22523')  # projeção utm corrego alegre
         buffer_union = new_crs.buffer(1200).unary_union  # foi necessário mudar a projeção para que se possa usar a unidade do buffer em metros
