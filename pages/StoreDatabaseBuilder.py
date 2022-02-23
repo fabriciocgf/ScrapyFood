@@ -1,9 +1,54 @@
 import streamlit as st
-import subprocess
 import pandas as pd
 import os
+from scrapy.crawler import CrawlerRunner
+from ScrapyFood.spiders.Data import DataSpider
+from ScrapyFood.spiders.MenuData import MenudataSpider
+from crochet import setup, wait_for # use this ti run scrapy more than one time
 
 def app():
+
+    setup() # use this ti run scrapy more than one time
+
+    @wait_for(1000) # use this ti run scrapy more than one time
+    def run_Data():
+        process = CrawlerRunner({'FEEDS': {
+            'Restaurants.csv': {
+                'format': 'csv',
+                "overwrite": True,
+                'encoding': 'utf8',
+                'store_empty': False,
+                'fields': None,
+                'indent': 0,
+                'item_export_kwargs': {
+                    'export_empty_fields': True,
+                }
+            }}})
+        d = process.crawl(DataSpider)
+        return d
+
+    @wait_for(1000) # use this ti run scrapy more than one time
+    def run_Menu():
+        process = CrawlerRunner({'FEEDS': {
+            'Items.csv': {
+                'format': 'csv',
+                "overwrite": True,
+                'encoding': 'utf8',
+                'store_empty': False,
+                'fields': None,
+                'indent': 0,
+                'item_export_kwargs': {
+                    'export_empty_fields': True,
+                }
+            }}})
+        d = process.crawl(MenudataSpider)
+        return d
+
+    @st.cache
+    def convert_df_to_csv(df):
+        # IMPORTANT: Cache the conversion to prevent computation on every rerun
+        return df.to_csv().encode('utf-8')
+
     if 'button1' not in st.session_state:
         st.session_state.button1 = False
 
@@ -13,16 +58,11 @@ def app():
     if 'button3' not in st.session_state:
         st.session_state.button3 = False
 
-    @st.cache
-    def convert_df_to_csv(df):
-        # IMPORTANT: Cache the conversion to prevent computation on every rerun
-        return df.to_csv().encode('utf-8')
-
     st.markdown("## First lets generate the Database")
     left_column, right_column = st.columns(2)
     with left_column:
         if st.button('Generate Database using first step links'):
-            scrapy = subprocess.run('scrapy crawl data_spider -O Restaurants.csv -t csv', shell=True)
+            run_Data()
             st.session_state.button1 = True
     with right_column:
         uploaded_file = st.file_uploader('Upload your links')
@@ -32,7 +72,7 @@ def app():
                 with open(os.path.join(uploaded_file.name), "wb") as f:
                     f.write(uploaded_file.getbuffer())
                 os.rename(uploaded_file.name, 'stores_list.json')
-                scrapy = subprocess.run('scrapy crawl data_spider -O Restaurants.csv -t csv', shell=True)
+                run_Data()
                 st.session_state.button1 = True
 
     if st.session_state.button1:
@@ -54,7 +94,7 @@ def app():
         st.write('Filtered Database Saved')
         st.markdown("## Now we can get all the items sold im these stores")
         if st.button('Save items sold in these stores'):
-            scrapy = subprocess.run('scrapy crawl menudata_spider -O Items.csv -t csv', shell=True)
+            run_Menu()
             st.write('All store itens were saved')
             st.session_state.button3 = True
     if st.session_state.button3:
