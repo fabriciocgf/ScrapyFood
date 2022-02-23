@@ -34,7 +34,7 @@ def app():
 
     if st.session_state.gis_data:
         st.write('Database Loaded')
-        st.markdown("## Let's see the distribution of our data")
+        st.markdown("## Let's see our data on the Map")
         df['Lat'].replace('', np.nan, inplace=True)
         df.dropna(subset=['Lat'], inplace=True)
         df = df.reset_index(drop=True)
@@ -52,13 +52,12 @@ def app():
         )
         
         folium_static(m)
-
+        
+        st.markdown("## Buffer Unions")
         new_crs = gdf.to_crs(crs='EPSG:22523')  # projeção utm corrego alegre
         buffer_union = new_crs.buffer(1200).unary_union  # foi necessário mudar a projeção para que se possa usar a unidade do buffer em metros
         buffer_union_gdf = gpd.GeoDataFrame(geometry=[buffer_union], crs=new_crs.crs)
         buffer_union_gdf.explore(m=m, tiles="cartodbpositron", name="Area", tooltip=False)
-
-        folium.LayerControl().add_to(m)  # use folium to add layer control
 
         folium_static(m)
 
@@ -104,21 +103,20 @@ def app():
             # Append MultiPolygon and level as tuple to list
             level_polygons.append((levels[i], multi))
             i += 1
-
-            # Create DataFrame
-            df = pd.DataFrame(level_polygons, columns=['level', 'geometry'])
-            df['level'] = df.apply(lambda row: np.round((1 - row.level) * 100, 2), axis=1)
-            # Convert to a GeoDataFrame
-            geo = gpd.GeoDataFrame(df, geometry='geometry', crs=gdf.crs)
+        # Create DataFrame
+        df = pd.DataFrame(level_polygons, columns=['level', 'geometry'])
+        df['level'] = df.apply(lambda row: np.round((1 - row.level) * 100, 2), axis=1)
+        # Convert to a GeoDataFrame
+        geo = gpd.GeoDataFrame(df, geometry='geometry', crs=gdf.crs)
             #m = geo.explore(tiles="cartodbpositron", width=1000, height=800)
-            m = folium.Map(location=[geo['geometry'][0].centroid.y, geo['geometry'][0].centroid.x], zoom_start=1000, tiles='CartoDB positron', width=1000, height=800)
-            for _, r in geo.iterrows():
-                # Without simplifying the representation of each borough,
-                # the map might not be displayed
-                sim_geo = gpd.GeoSeries(r['geometry']).simplify(tolerance=0.001)
-                geo_j = sim_geo.to_json()
-                geo_j = folium.GeoJson(data=geo_j, style_function=lambda x: {'fillColor': 'blue'})
-                folium.Tooltip(r['level']).add_to(geo_j)
-                geo_j.add_to(m)
+        m = folium.Map(location=[geo['geometry'][0].centroid.y, geo['geometry'][0].centroid.x], zoom_start=1000, tiles='CartoDB positron', width=1000, height=800)
+        for _, r in geo.iterrows():
+            # Without simplifying the representation of each borough,
+            # the map might not be displayed
+            sim_geo = gpd.GeoSeries(r['geometry']).simplify(tolerance=0.001)
+            geo_j = sim_geo.to_json()
+            geo_j = folium.GeoJson(data=geo_j, style_function=lambda x: {'fillColor': 'blue'})
+            folium.Tooltip(r['level']).add_to(geo_j)
+            geo_j.add_to(m)
                 
-            folium_static(m)
+        folium_static(m)
