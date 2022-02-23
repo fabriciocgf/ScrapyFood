@@ -13,8 +13,8 @@ app = MultiPage()
 # col2.title("Data Storyteller Application")
 
 # Add all your application here
-app.add_page("First Step", StoreListBuilder.app)
-app.add_page("Second Step", StoreDatabaseBuilder.app)
+app.add_page("Build Links List", StoreListBuilder.app)
+app.add_page("WebScraping Database builder", StoreDatabaseBuilder.app)
 app.add_page("GIS Analysis", GeoAnalysis.app)
 
 # The main app
