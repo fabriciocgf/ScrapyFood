@@ -1,4 +1,4 @@
-firefox-esr
+firefox
 python3-dev
 libxml2-dev
 libxslt1-dev
