@@ -1,12 +1,10 @@
-#import contextily as ctx
 import matplotlib.pyplot as plt
 import seaborn as sns
 import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Point, Polygon, MultiPolygon
-import folium
 import numpy as np
-#import fiona
+import fiona
 import streamlit as st
 import os
 from streamlit_folium import folium_static
@@ -15,6 +13,9 @@ def app():
     if 'gis_data' not in st.session_state:
         st.session_state.gis_data = False
 
+    if 'gis_data_download' not in st.session_state:
+        st.session_state.gis_data_download = False
+
     st.markdown("## GIS Analysis")
     left_column, right_column = st.columns(2)
     with left_column:
@@ -22,7 +23,7 @@ def app():
             df = pd.read_csv("Restaurants.csv")
             st.session_state.gis_data = True
     with right_column:
-        uploaded_file = st.file_uploader('Upload your links')
+        uploaded_file = st.file_uploader('Upload your database')
         if uploaded_file is not None:
             if not st.session_state.button1:
                 st.write('Loading your Database')
@@ -111,3 +112,34 @@ def app():
         m = geo.explore(tiles="cartodbpositron", width=1000, height=800, tooltip="level")
                 
         folium_static(m)
+        st.session_state.gis_data_download = True
+
+    if st.session_state.gis_data:
+        # export data as KML
+        fiona.supported_drivers['KML'] = 'rw'
+        gdf.to_file('POI.kml', driver='KML')
+        geo.to_file('Densities.kml', driver='KML')
+        buffer_union_gdf.to_file('Buffer_union.kml', driver='KML')
+        st.markdown("## Now you can download your results as KML")
+        left_column, middle_column, right_column = st.columns(3)
+        with left_column:
+            st.download_button(
+                label="Download Restaurants data",
+                data=convert_df_to_csv(restaurants),
+                file_name='POI.kml',
+                mime='text/kml',
+            )
+        with middle_column:
+            st.download_button(
+                label="Download Buffer union data",
+                data=convert_df_to_csv(restaurants),
+                file_name='Buffer_union.kml',
+                mime='text/kml',
+            )
+        with right_column:
+            st.download_button(
+                label="Download Densities data",
+                data=convert_df_to_csv(restaurants),
+                file_name='Densities.kml',
+                mime='text/kml',
+            )
