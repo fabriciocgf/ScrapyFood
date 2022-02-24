@@ -123,23 +123,26 @@ def app():
         st.markdown("## Now you can download your results as KML")
         left_column, middle_column, right_column = st.columns(3)
         with left_column:
-            st.download_button(
-                label="Download Restaurants data",
-                data=convert_df_to_csv(restaurants),
-                file_name='POI.kml',
-                mime='text/kml',
-            )
+            with open("POI.kml", "rb") as file:
+                st.download_button(
+                    label="Download Restaurants data",
+                    data=file,
+                    file_name='POI.kml',
+                    mime='text/kml',
+                )
         with middle_column:
-            st.download_button(
-                label="Download Buffer union data",
-                data=convert_df_to_csv(restaurants),
-                file_name='Buffer_union.kml',
-                mime='text/kml',
-            )
+            with open("Buffer_union.kml", "rb") as file:
+                st.download_button(
+                    label="Download Buffer union data",
+                    data=file,
+                    file_name='Buffer_union.kml',
+                    mime='text/kml',
+                )
         with right_column:
-            st.download_button(
-                label="Download Densities data",
-                data=convert_df_to_csv(restaurants),
-                file_name='Densities.kml',
-                mime='text/kml',
-            )
+            with open("Densities.kml", "rb") as file:
+                st.download_button(
+                    label="Download Densities data",
+                    data=file,
+                    file_name='Densities.kml',
+                    mime='text/kml',
+                )
