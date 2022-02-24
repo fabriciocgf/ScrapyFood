@@ -114,7 +114,7 @@ def app():
         folium_static(m)
         st.session_state.gis_data_download = True
 
-    if st.session_state.gis_data:
+    if st.session_state.gis_data_download:
         # export data as KML
         fiona.supported_drivers['KML'] = 'rw'
         gdf.to_file('POI.kml', driver='KML')
